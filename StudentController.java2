@@ -1,0 +1,61 @@
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class StudentController {
+    private Connection con;
+
+    public StudentController() throws Exception {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        con = DriverManager.getConnection(
+            "jdbc:mysql://localhost:3306/yourDatabaseName","yourUsername","yourPassword");
+        con.setAutoCommit(false);
+    }
+
+    public void addStudent(Student s) throws SQLException {
+        PreparedStatement ps = con.prepareStatement(
+            "INSERT INTO Student(StudentID, Name, Department, Marks) VALUES(?, ?, ?, ?)");
+        ps.setInt(1, s.getStudentID());
+        ps.setString(2, s.getName());
+        ps.setString(3, s.getDepartment());
+        ps.setInt(4, s.getMarks());
+        ps.executeUpdate();
+        con.commit();
+    }
+
+    public List<Student> getAllStudents() throws SQLException {
+        List<Student> list = new ArrayList<>();
+        Statement stmt = con.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT * FROM Student");
+        while(rs.next()) {
+            list.add(new Student(rs.getInt("StudentID"),
+                                 rs.getString("Name"),
+                                 rs.getString("Department"),
+                                 rs.getInt("Marks")));
+        }
+        rs.close();
+        return list;
+    }
+
+    public void updateStudent(Student s) throws SQLException {
+        PreparedStatement ps = con.prepareStatement(
+            "UPDATE Student SET Name=?, Department=?, Marks=? WHERE StudentID=?");
+        ps.setString(1, s.getName());
+        ps.setString(2, s.getDepartment());
+        ps.setInt(3, s.getMarks());
+        ps.setInt(4, s.getStudentID());
+        ps.executeUpdate();
+        con.commit();
+    }
+
+    public void deleteStudent(int studentID) throws SQLException {
+        PreparedStatement ps = con.prepareStatement("DELETE FROM Student WHERE StudentID=?");
+        ps.setInt(1, studentID);
+        ps.executeUpdate();
+        con.commit();
+    }
+
+    public void closeConnection() throws SQLException {
+        con.close();
+    }
+}
